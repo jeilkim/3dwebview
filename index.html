@@ -2,10 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Babylon.js - 내부 고정 시점</title>
+  <title>Babylon.js - 모바일 터치 지원</title>
   <style>
-    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-    canvas { width: 100%; height: 100%; display: block; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none; /* 📌 모바일 터치 동작 전달 */
+    }
   </style>
 </head>
 <body>
@@ -20,25 +31,29 @@
       const engine = new BABYLON.Engine(canvas, true);
       const scene = new BABYLON.Scene(engine);
 
-      // 빛
+      // 💡 라이트 추가
       new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
-      // 📌 내부 고정 시점으로 카메라 생성
-      const camera = new BABYLON.UniversalCamera("InsideCamera",
-        new BABYLON.Vector3(-2.787401237961629, 2.4456519991034993, -1.87159044788558),
-        scene);
-      camera.setTarget(new BABYLON.Vector3(-3.324947485798543, 1.99773591608734, -2.5460530054947233));
-      camera.attachControl(canvas, true);
-      camera.speed = 0.1;
-      camera.keysUp.push(87);    // W
-      camera.keysDown.push(83);  // S
-      camera.keysLeft.push(65);  // A
-      camera.keysRight.push(68); // D
+      // 🎯 기존 좌표 기반으로 ArcRotateCamera 설정
+      const target = new BABYLON.Vector3(-3.3249, 1.9977, -2.5460);
+      const position = new BABYLON.Vector3(-2.7874, 2.4456, -1.8715);
+      const direction = position.subtract(target);
+      const radius = direction.length();
+      const alpha = Math.atan2(direction.z, direction.x);
+      const beta = Math.acos(direction.y / radius);
 
-      // glTF 로드
+      const camera = new BABYLON.ArcRotateCamera("arcCamera", alpha, beta, radius, target, scene);
+      camera.attachControl(canvas, true);
+
+      // 📱 터치/줌 설정 최적화
+      camera.wheelPrecision = 50;
+      camera.pinchPrecision = 200;
+      camera.panningSensibility = 0;
+
+      // 📦 glTF 모델 로드
       await BABYLON.SceneLoader.AppendAsync("models/", "scene.gltf", scene);
 
-      // 내부 면 보이도록 설정
+      // 내부 면도 보이도록 처리
       scene.executeWhenReady(() => {
         scene.meshes.forEach(mesh => {
           const mat = mesh.material;
@@ -48,6 +63,7 @@
         });
       });
 
+      // 🎬 렌더 루프 및 리사이즈
       engine.runRenderLoop(() => scene.render());
       window.addEventListener('resize', () => engine.resize());
     });
