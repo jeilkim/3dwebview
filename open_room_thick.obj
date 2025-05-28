@@ -1,0 +1,70 @@
+
+# Room with wall thickness (5 faces, one open), textured
+mtllib room_thick.mtl
+o RoomWithThickWalls
+
+# Vertices
+# Inner bottom square (room inner floor)
+v -1.0 0.0 -1.0
+v  1.0 0.0 -1.0
+v  1.0 0.0  1.0
+v -1.0 0.0  1.0
+
+# Inner top square (room ceiling)
+v -1.0 1.0 -1.0
+v  1.0 1.0 -1.0
+v  1.0 1.0  1.0
+v -1.0 1.0  1.0
+
+# Outer bottom square (room exterior)
+v -1.2 0.0 -1.2
+v  1.2 0.0 -1.2
+v  1.2 0.0  1.2
+v -1.2 0.0  1.2
+
+# Outer top square
+v -1.2 1.0 -1.2
+v  1.2 1.0 -1.2
+v  1.2 1.0  1.2
+v -1.2 1.0  1.2
+
+# Texture coordinates
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+
+usemtl room_material
+
+# Floor
+f 1/1 2/2 3/3 4/4
+
+# Ceiling
+f 5/1 8/4 7/3 6/2
+
+# Back wall inner
+f 2/1 6/2 7/3 3/4
+# Back wall outer
+f 10/1 14/2 15/3 11/4
+# Back wall sides
+f 2/1 10/2 11/3 6/4
+f 6/1 11/2 15/3 14/4
+f 14/1 5/2 2/3 10/4
+
+# Left wall inner
+f 1/1 5/2 8/3 4/4
+# Left wall outer
+f 9/1 13/2 16/3 12/4
+# Left wall sides
+f 1/1 9/2 13/3 5/4
+f 5/1 13/2 16/3 8/4
+f 8/1 16/2 12/3 4/4
+
+# Right wall inner
+f 3/1 7/2 8/3 4/4
+# Right wall outer
+f 11/1 15/2 16/3 12/4
+# Right wall sides
+f 3/1 11/2 15/3 7/4
+f 7/1 15/2 16/3 8/4
+f 8/1 16/2 12/3 4/4

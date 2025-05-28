@@ -1,0 +1,38 @@
+
+# Open rectangular room with one open face, all normals facing outward
+mtllib room.mtl
+o OpenRoom
+
+# Vertices
+v -1.0 0.0 -1.0
+v  1.0 0.0 -1.0
+v  1.0 0.0  1.0
+v -1.0 0.0  1.0
+v -1.0 1.0 -1.0
+v  1.0 1.0 -1.0
+v  1.0 1.0  1.0
+v -1.0 1.0  1.0
+
+# Texture coordinates
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+
+# Faces with consistent winding order (counter-clockwise from outside view)
+
+# Floor
+usemtl room_material
+f 1/1 2/2 3/3 4/4
+
+# Ceiling
+f 5/1 8/4 7/3 6/2
+
+# Back wall
+f 2/1 6/2 7/3 3/4
+
+# Left wall
+f 1/1 5/2 8/3 4/4
+
+# Right wall
+f 3/1 7/2 8/3 4/4

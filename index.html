@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Babylon.js - 내부 고정 시점</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+    canvas { width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', async () => {
+      const canvas = document.getElementById("renderCanvas");
+      const engine = new BABYLON.Engine(canvas, true);
+      const scene = new BABYLON.Scene(engine);
+
+      // 빛
+      new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+      // 📌 내부 고정 시점으로 카메라 생성
+      const camera = new BABYLON.UniversalCamera("InsideCamera",
+        new BABYLON.Vector3(-2.787401237961629, 2.4456519991034993, -1.87159044788558),
+        scene);
+      camera.setTarget(new BABYLON.Vector3(-3.324947485798543, 1.99773591608734, -2.5460530054947233));
+      camera.attachControl(canvas, true);
+      camera.speed = 0.1;
+      camera.keysUp.push(87);    // W
+      camera.keysDown.push(83);  // S
+      camera.keysLeft.push(65);  // A
+      camera.keysRight.push(68); // D
+
+      // glTF 로드
+      await BABYLON.SceneLoader.AppendAsync("models/", "scene.gltf", scene);
+
+      // 내부 면 보이도록 설정
+      scene.executeWhenReady(() => {
+        scene.meshes.forEach(mesh => {
+          const mat = mesh.material;
+          if (mat && "backFaceCulling" in mat) {
+            mat.backFaceCulling = false;
+          }
+        });
+      });
+
+      engine.runRenderLoop(() => scene.render());
+      window.addEventListener('resize', () => engine.resize());
+    });
+  </script>
+</body>
+</html>
