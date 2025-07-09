@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Babylon.js - 모바일 터치 지원</title>
+  <meta charset="UTF-8" />
+  <title>Babylon.js - GLB Export with Camera</title>
   <style>
     html, body {
       margin: 0;
@@ -15,15 +15,24 @@
       width: 100%;
       height: 100%;
       display: block;
-      touch-action: none; /* 📌 모바일 터치 동작 전달 */
+      touch-action: none;
+    }
+    #saveBtn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      padding: 10px 15px;
     }
   </style>
 </head>
 <body>
+  <button id="saveBtn">💾 GLB 저장</button>
   <canvas id="renderCanvas"></canvas>
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <script src="https://cdn.babylonjs.com/serializers/babylon.glTF2Serializer.min.js"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', async () => {
@@ -33,6 +42,7 @@
 
       new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
+      // ✅ 기존 카메라 위치 및 타겟 (당신이 쓰던 값)
       const target = new BABYLON.Vector3(-3.3249, 1.9977, -2.5460);
       const position = new BABYLON.Vector3(-2.7874, 2.4456, -1.8715);
       const direction = position.subtract(target);
@@ -40,42 +50,33 @@
       const alpha = Math.atan2(direction.z, direction.x);
       const beta = Math.acos(direction.y / radius);
 
-      const camera = new BABYLON.ArcRotateCamera("arcCamera", alpha, beta, radius, target, scene);
-      camera.attachControl(canvas, true);
-      camera.wheelPrecision = 50;
-      camera.pinchPrecision = 200;
-      camera.panningSensibility = 0;
+      // Arc 카메라
+      const arcCamera = new BABYLON.ArcRotateCamera("arcCamera", alpha, beta, radius, target, scene);
+      arcCamera.attachControl(canvas, true);
 
       await BABYLON.SceneLoader.AppendAsync("models/", "scene.gltf", scene);
 
+      // 머티리얼 백페이스 제거
       scene.executeWhenReady(() => {
         scene.meshes.forEach(mesh => {
-          const mat = mesh.material;
-          if (mat && "backFaceCulling" in mat) {
-            mat.backFaceCulling = false;
+          if (mesh.material && "backFaceCulling" in mesh.material) {
+            mesh.material.backFaceCulling = false;
           }
         });
+      });
 
-        // ✅ 타일 텍스처 변경 함수 정의 (세 개 머티리얼 동시 교체)
-        const materialNames = [
-          '101219dc0000000000044921_370x275_b',
-          '101219dc0000000000044997_370x275_b',
-          '101219dc0000000000045104_370x275_b'
-        ];
+      // 저장 버튼 클릭 시 실행
+      document.getElementById("saveBtn").addEventListener("click", () => {
+        // ✅ ArcRotateCamera의 시점 계산해서 UniversalCamera 생성
+        const exportedCamera = new BABYLON.UniversalCamera("ExportedCamera", arcCamera.position.clone(), scene);
+        exportedCamera.setTarget(arcCamera.target.clone());
+        exportedCamera.metadata = { gltf: { export: true } };
 
-        window.changeTileTexture = function(texturePath) {
-          materialNames.forEach(name => {
-            const mat = scene.materials.find(m => m.name === name);
-            if (mat) {
-              const tex = new BABYLON.Texture(texturePath, scene);
-              mat.albedoTexture = tex;
-              mat.diffuseTexture = tex;
-              console.log(`✅ '${name}' 텍스처 변경 완료`);
-            } else {
-              console.log(`❌ 머티리얼 '${name}'을 찾을 수 없음`);
-            }
-          });
-        };
+        // 내보내기
+        BABYLON.GLTF2Export.GLBAsync(scene, "exportedScene_with_camera").then(glb => {
+          glb.downloadFiles();
+          console.log("📦 GLB 저장 완료 (카메라 포함)");
+        });
       });
 
       engine.runRenderLoop(() => scene.render());
